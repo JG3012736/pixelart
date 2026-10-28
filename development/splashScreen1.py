@@ -1,0 +1,201 @@
+from cmu_112_graphics import *
+import random, math
+
+##########################################
+# Helper Functions
+##########################################
+
+# Source Code for getCell and getCellBounds: 
+# https://www.cs.cmu.edu/~112/notes/notes-animations-part2.html #
+
+def getCell(app, x, y):
+    # aka "viewToModel"
+    # return (row, col) in which (x, y) occurred or (-1, -1) if outside grid.
+    if (not pointInGrid(app, x, y)):
+        return (-1, -1)
+    gridWidth  = app.width - 2*app.margin
+    gridHeight = app.height - 2*app.margin
+    cellWidth  = gridWidth / app.cols
+    cellHeight = gridHeight / app.rows
+
+    row = int((y - app.margin) / cellHeight)
+    col = int((x - app.margin) / cellWidth)
+
+    return (row, col)
+
+def getCellBounds(app, row, col):
+    # aka "modelToView"
+    # returns (x0, y0, x1, y1) corners/bounding box of given cell in grid
+    gridWidth  = app.width - 2*app.margin
+    gridHeight = app.height - 2*app.margin
+    cellWidth = gridWidth / app.cols
+    cellHeight = gridHeight / app.rows
+    x0 = app.margin + col * cellWidth
+    x1 = app.margin + (col+1) * cellWidth
+    y0 = app.margin + row * cellHeight
+    y1 = app.margin + (row+1) * cellHeight
+    return (x0, y0, x1, y1)
+
+def drawBackgroundColor(app, canvas):
+    canvas.create_rectangle(0, 0, app.width, app.height, 
+                                                fill=app.backgroundColor)
+
+##########################################
+# Splash Screen Mode
+##########################################
+
+'''Top Level Splash Mode Functions'''
+
+def splashScreenMode_redrawAll(app, canvas):
+    drawBackgroundColor(app, canvas)
+    drawGridDesign(app, canvas)
+    drawMainBox(app, canvas)
+    drawWelcomeText(app, canvas)
+    drawLogoBackground(app, canvas)
+    drawNewCanvasWebPage(app, canvas)
+
+def splashScreenMode_keyPressed(app, event):
+    if (event.key == 'Right'):
+        app.mode = 'canvasMode'
+
+'''Drawing the Background Functions'''
+
+def drawWelcomeText(app, canvas):
+    x0 = app.width//2 - app.width//4
+    y0 = app.height//10
+    x1 = app.width//2 + app.width//4
+    y1 = app.height//5.5
+    fill1 = "lightgray"
+    outline1 = "gray25"
+
+    #shadows#
+    canvas.create_rectangle(x0-10//3, y0-10//3, x1+10//3, y1+10//3, 
+                                fill="dimgray", width=0)
+
+    #highlights#
+    canvas.create_rectangle(x0-10//3, y0-10//3, x1, y1,
+                            fill="white", width=0)
+
+    #main box#
+    canvas.create_rectangle(x0, y0, x1, y1, fill=fill1, 
+                                outline=outline1, width=1)
+
+    x0Text = (x0+x1)//2
+    y0Text = (y0+y1)//2
+
+    if y0Text <= 80:
+        font = "Arial 12 italic"
+    elif y0Text >= 115:
+        font = "Arial 40 italic"
+    else:
+        font = "Arial 25 italic"
+
+    canvas.create_text(x0Text, y0Text, fill="gray30",
+                            text="welcome to pixelArt", font=font)
+
+def drawMainBox(app, canvas):
+    x0MainBox = (app.width//2 - app.width//4) - 10*2
+    y0MainBox = (app.height//10) - 10*2*2
+    x1MainBox = (app.width//2 + app.width//4) + 10*2
+    y1MainBox = (app.height//5.5 + app.height//2) + 10*2
+
+    #shadows#
+    canvas.create_rectangle(x0MainBox-10//3, y0MainBox-10//3, 
+                            x1MainBox+10//3, y1MainBox+10//3, 
+                                fill="dimgray", width=0)
+
+    #highlights#
+    canvas.create_rectangle(x0MainBox-10//3, y0MainBox-10//3, 
+                            x1MainBox, y1MainBox, 
+                            fill="white", width=0)
+
+    #main box#
+    canvas.create_rectangle(x0MainBox, y0MainBox, x1MainBox, y1MainBox,
+                                fill="light gray")
+
+    x0Border = (app.width//2 - app.width//4) - 10*2
+    y0Border = (app.height//10) - 10*2*2
+    x1Border = (app.width//2 + app.width//4) + 10*2
+    y1Border = app.width//14       #fix this
+
+    canvas.create_rectangle(x0Border, y0Border, x1Border, y1Border,
+                                fill="pink")
+
+def drawLogoBackground(app, canvas):
+    x0 = app.width//2 - app.width//4
+    y0 = app.height//10 + app.height//7
+    x1 = app.width//2 + app.width//4
+    y1 = app.height//5.5 + app.height//2
+    fill1 = "white"
+    outline1 = "gray25"
+
+    #shadows#
+    canvas.create_rectangle(x0-10//3, y0-10//3, x1, y1, 
+                            fill="dimgray", width=0)
+
+    #main box#
+    canvas.create_rectangle(x0, y0, x1, y1, fill=fill1, outline=outline1)
+
+def drawGridDesign(app, canvas):      #draws the grid background
+    for row in range(0, app.rows):
+        for col in range(0, app.cols):
+            (x0, y0, x1, y1) = getCellBounds(app, row, col)
+            canvas.create_rectangle(x0, y0, x1, y1, outline="white")
+
+'''Drawing the Next Page Buttons'''
+
+def drawNewCanvasWebPage(app, canvas):
+    x0 = app.width//3 + app.width//3 - app.height//15
+    y0 = app.height//3 + app.height//2
+    x1 = x0 + app.width//3
+    y1 = y0 - app.height//4
+
+    canvas.create_rectangle(x0, y0, x1, y1, fill="light gray")
+
+##########################################
+# Canvas Mode
+##########################################
+
+def canvasMode_redrawAll(app, canvas):
+    font = 'Arial 26 bold'
+    drawBackgroundColor(app, canvas)
+    canvas.create_text(app.width/2, 150, text='Welcome to canvas mode!', font=font)
+
+def canvasMode_timerFired(app):
+    pass
+
+def canvasMode_mousePressed(app, event):
+    pass
+
+def canvasMode_keyPressed(app, event):
+    if (event.key == 'Left'):
+        app.mode = 'splashScreenMode'
+
+##########################################
+# Main App
+##########################################
+
+def appStarted(app):
+    app.mode = 'splashScreenMode'
+    app.backgroundColor = "light sky blue"
+    app.rows = 35
+    app.cols = 35
+    app.margin = 0
+
+''' OOP User Interactions'''
+
+class Button():
+
+    def __init__(self, buttonLocator):
+        buttonLocation = buttonLocator()
+    
+    def buttonLocator():
+        pass
+
+class Canvas():
+
+    def __init__(self, gridSize, cellSize):
+        self.gridSize = gridSize
+        self.cellSize = cellSize
+
+runApp(width=700, height=700)
